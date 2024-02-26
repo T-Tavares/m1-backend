@@ -1,0 +1,36 @@
+{
+    "car_value_tc": [
+        {
+            "model": "Civic",
+            "year": 2014,
+            "expected": {"car_value_tc": 6614}
+        }
+    ],
+    "risk_rating_tc": [
+        {
+            "claim_history": "My only claim was a crash into my house's garage door that left a scratch on my car.  There are no other crashes.",
+            "expected": {"risk_rating": 3}
+        }
+    ],
+    "insurance_quote_tc": [
+        {
+            "car_value": 6614,
+            "risk_rating": 5,
+            "expected": {
+                "monthly_premium": 27.5,
+                "yearly_premium": 330
+            }
+        }
+    ],
+    "generate_insurance_quote_tc": [
+        {
+            "model": "Civic",
+            "year": 2014,
+            "claim_history": "My only claim was a crash into my house's garage door that left a scratch and bump on my car. There are no other crashes nor collisions.",
+            "expected": {
+                "monthly_premium": 27.5,
+                "yearly_premium": 330
+            }
+        }
+    ]
+}

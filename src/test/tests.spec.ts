@@ -5,7 +5,7 @@ import {getCarValue, getRiskRating, getInsuranceQuote, generateInsuranceQuote} f
 // ------------------- getCarValue() UNIT TEST -------------------- //
 
 describe('getCarValue', () => {
-    it('Should return Car Value as a number', () => {
+    it('Correct Input => Should return Car Value as a number', () => {
         // ARRANGE
         const carInput = {
             model: 'Civic',
@@ -19,6 +19,21 @@ describe('getCarValue', () => {
         // ASSERT
         expect(actual).toStrictEqual(expected);
     });
+    it('Negative Year => Should return ERROR', () => {
+        // ARRANGE
+        const carInput = {
+            model: 'Civic',
+            year: -914,
+        };
+        const expected = {error: 'there is an error'};
+
+        // ACT
+        const actual = getCarValue(carInput);
+
+        // ASSERT
+        expect(actual).toStrictEqual(expected);
+    });
+    // it('Wrong data input => Should return ERROR', () => {});
 });
 
 // ------------------ getRiskRating() UNIT TEST ------------------- //

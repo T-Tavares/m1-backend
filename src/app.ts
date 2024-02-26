@@ -9,13 +9,9 @@ dotenv.config();
 // APP
 const app = express();
 
-// MIDDLEWARE
+// GENERAL MIDDLEWARE
 app.use(cors());
 app.use(express.json());
-
-app.get('/', (req, res) => {
-    res.send('noice');
-});
 
 // APP EXPORT
 module.exports = app;

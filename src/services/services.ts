@@ -2,14 +2,16 @@
 
 import {
     I_CarValueInput,
-    I_CarValueOutput,
+    T_CarValueOutput,
     I_RatingInput,
-    I_RatingOutput,
+    T_RatingOutput,
     I_QuoteInput,
-    I_QuoteOutput,
-    I_GenerateQuoteInput,
+    T_QuoteOutput,
+    T_GenerateQuoteInput,
+    T_GenerateQuoteOutput,
 } from '../models/interfaces';
 
+import {isYearOk, isModelOk, isClaimOk, isCarValueOk, isRiskRatingOk} from './error_handlers';
 // ---------------------------------------------------------------- //
 // ------------------------ GET CAR VALUE ------------------------- //
 // ---------------------------------------------------------------- //
@@ -28,7 +30,7 @@ const getCharacterNumber = (input: string): number => {
 
 // ----------------------- GET CAR VALUE () ----------------------- //
 
-export const getCarValue = (inputObj: I_CarValueInput): I_CarValueOutput => {
+export const getCarValue = (inputObj: I_CarValueInput): T_CarValueOutput => {
     /*   
         getCarValue Bussiness formula:
         Sum of characters indexes ( a = 1 ... z = 26) multiplied by 100 plus the car year
@@ -36,6 +38,10 @@ export const getCarValue = (inputObj: I_CarValueInput): I_CarValueOutput => {
     */
 
     const {model, year} = inputObj;
+
+    // ERROR HANDLING
+    if (isYearOk(year).error) return isYearOk(year);
+    if (isModelOk(model).error) return isModelOk(model);
 
     // Get sum of characters index
     const modelCharsSum = model
@@ -54,7 +60,7 @@ export const getCarValue = (inputObj: I_CarValueInput): I_CarValueOutput => {
 // ----------------------- GET RISK RATING ------------------------ //
 // ---------------------------------------------------------------- //
 
-export const getRiskRating = (inputObj: I_RatingInput): I_RatingOutput => {
+export const getRiskRating = (inputObj: I_RatingInput): T_RatingOutput => {
     /* 
         getRiskRating Bussiness formula:
         Count how many of the rating words are on the claim. Adds 1 for each occurence. (min = 1 ; max = 5)
@@ -63,6 +69,10 @@ export const getRiskRating = (inputObj: I_RatingInput): I_RatingOutput => {
 
     const {claim_history: claimStr} = inputObj;
 
+    // ERROR HANDLING
+    if (isClaimOk(claimStr).error) return isClaimOk(claimStr);
+
+    // MINIMUM RISK RATING FOR EMPTY CLAIMS
     if (claimStr === '') return {risk_rating: 1};
 
     const ratingWordsArr = [
@@ -101,18 +111,20 @@ export const getRiskRating = (inputObj: I_RatingInput): I_RatingOutput => {
 // --------------------- GET INSURANCE QUOTE ---------------------- //
 // ---------------------------------------------------------------- //
 
-export const getInsuranceQuote = (insuranceInput: I_QuoteInput): I_QuoteOutput => {
+export const getInsuranceQuote = (insuranceInput: I_QuoteInput): T_QuoteOutput => {
     /* 
         getInsuranceQuote Bussiness formule:
         Car Value multiplied by driver Rating divided by 100
     */
 
-    const {car_value: value, risk_rating: rating} = insuranceInput;
+    const {car_value, risk_rating} = insuranceInput;
 
-    const quote = Math.floor((value * rating) / 100);
+    // ERROR HANDLING
+    if (isCarValueOk(car_value).error) return isCarValueOk(car_value);
+    if (isRiskRatingOk(risk_rating).error) return isRiskRatingOk(risk_rating);
+
+    const quote = Math.floor((car_value * risk_rating) / 100);
     const monthly_quote = quote / 12;
-    console.log(quote);
-    console.log(monthly_quote);
 
     return {monthly_premium: monthly_quote, yearly_premium: quote};
 };
@@ -121,15 +133,39 @@ export const getInsuranceQuote = (insuranceInput: I_QuoteInput): I_QuoteOutput =
 // ---------------- GENERATE INSURANCE QUOTE MVP  ----------------- //
 // ---------------------------------------------------------------- //
 
-export const generateInsuranceQuote = (driverAndCarInput: I_GenerateQuoteInput): I_QuoteOutput => {
+export const generateInsuranceQuote = (driverAndCarInput: T_GenerateQuoteInput): T_GenerateQuoteOutput => {
     /* 
         MVP Unit Test with all functions flowing together
     */
 
     const {model, year, claim_history} = driverAndCarInput;
 
-    const {car_value} = getCarValue({model: model, year: year});
-    const {risk_rating} = getRiskRating({claim_history: claim_history});
+    // ERROR HANDLING
+    if (isYearOk(year).error) return isYearOk(year);
+    if (isModelOk(model).error) return isModelOk(model);
+    if (isClaimOk(claim_history).error) return isClaimOk(claim_history);
+
+    /*
+        Deconstructing in typescript is a pain, that's the less verbose way I found to solve the errors.
+
+        I have to check the type on the obj because at run time ts/js has no idea on the types that will
+        be passed into these functions. For that I called/saved both methods on respective variables,
+        and destructured those variables using the in method to narrow the types on those objs.
+
+        This whole thing was triggered by adding a union type I_Error to the outputs. Which is necessary to
+        return errors.
+    */
+
+    const carValue = getCarValue({model: model, year: year});
+    const riskRating = getRiskRating({claim_history: claim_history});
+
+    const {car_value} = 'car_value' in carValue ? carValue : {car_value: -1};
+    const {risk_rating} = 'risk_rating' in riskRating ? riskRating : {risk_rating: -1};
+
+    // ERROR HANDLING
+    if (isCarValueOk(car_value).error) return isCarValueOk(car_value);
+    if (isRiskRatingOk(risk_rating).error) return isRiskRatingOk(risk_rating);
+
     const quote = getInsuranceQuote({car_value: car_value as number, risk_rating: risk_rating});
 
     return quote;
