@@ -6,8 +6,8 @@ export interface I_Error {
 // ------------------- getCarValue() INTERFACE -------------------- //
 
 export interface I_CarValueInput {
-    model: string;
-    year: number;
+    car_model: string;
+    car_year: number;
 }
 export interface I_CarValueOutput {
     car_value: number;
@@ -39,7 +39,22 @@ export interface I_QuoteOutput {
 
 export type T_QuoteOutput = I_QuoteOutput | I_Error;
 
-// -------------- generateInsuranceQuote() INTERFACE -------------- //
+// -------------- getInsuranceRepute() INTERFACE -------------- //
 
-export type T_GenerateQuoteInput = I_CarValueInput & I_RatingInput;
-export type T_GenerateQuoteOutput = I_QuoteOutput | I_Error;
+export interface I_DriverInfoInput {
+    driver_name: string;
+}
+
+// Interface to Output Layout of Insurance Repute
+export interface I_ReputeOutput_Layout {
+    driverName: string;
+    carModel: string;
+    carYear: number;
+    riskRating: number;
+    carValue: number;
+    monthlyPremium: number;
+    yearlyPremium: number;
+}
+
+export type T_InsuranceReputeInput = I_CarValueInput & I_RatingInput & I_DriverInfoInput;
+export type T_InsuranceReputeOutput = I_ReputeOutput_Layout | I_Error;
