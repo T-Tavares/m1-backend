@@ -1,17 +1,27 @@
 // ----------------------- SERVICES IMPORTS ----------------------- //
 
 import {
-    I_CarValueInput,
+    T_CarValueInput,
     T_CarValueOutput,
-    I_RatingInput,
+    T_RatingInput,
     T_RatingOutput,
-    I_QuoteInput,
+    T_QuoteInput,
     T_QuoteOutput,
     T_InsuranceReputeInput,
     T_InsuranceReputeOutput,
-} from '../models/interfaces';
+    T_MultiReputesInput,
+} from '../models/types';
 
-import {isYearOk, isModelOk, isClaimOk, isCarValueOk, isRiskRatingOk, isReputeOk} from './error_handlers';
+import {
+    isYearOk,
+    isModelOk,
+    isClaimOk,
+    isCarValueOk,
+    isRiskRatingOk,
+    isReputeOk,
+    isMultiReputesOk,
+} from './errorHandlers';
+
 // ---------------------------------------------------------------- //
 // ------------------------ GET CAR VALUE ------------------------- //
 // ---------------------------------------------------------------- //
@@ -30,7 +40,7 @@ const getCharacterNumber = (input: string): number => {
 
 // ----------------------- GET CAR VALUE () ----------------------- //
 
-export const getCarValue = (inputObj: I_CarValueInput): T_CarValueOutput => {
+export const getCarValue = (inputObj: T_CarValueInput): T_CarValueOutput => {
     /*   
         getCarValue Bussiness formula:
         Sum of characters indexes ( a = 1 ... z = 26) multiplied by 100 plus the car year
@@ -60,7 +70,7 @@ export const getCarValue = (inputObj: I_CarValueInput): T_CarValueOutput => {
 // ----------------------- GET RISK RATING ------------------------ //
 // ---------------------------------------------------------------- //
 
-export const getRiskRating = (inputObj: I_RatingInput): T_RatingOutput => {
+export const getRiskRating = (inputObj: T_RatingInput): T_RatingOutput => {
     /* 
         getRiskRating Bussiness formula:
         Count how many of the rating words are on the claim. Adds 1 for each occurence. (min = 1 ; max = 5)
@@ -111,7 +121,7 @@ export const getRiskRating = (inputObj: I_RatingInput): T_RatingOutput => {
 // --------------------- GET INSURANCE QUOTE ---------------------- //
 // ---------------------------------------------------------------- //
 
-export const getInsuranceQuote = (insuranceInput: I_QuoteInput): T_QuoteOutput => {
+export const getInsuranceQuote = (insuranceInput: T_QuoteInput): T_QuoteOutput => {
     /* 
         getInsuranceQuote Bussiness formule:
         Car Value multiplied by driver Rating divided by 100
@@ -130,7 +140,7 @@ export const getInsuranceQuote = (insuranceInput: I_QuoteInput): T_QuoteOutput =
 };
 
 // ---------------------------------------------------------------- //
-// ---------------- GENERATE INSURANCE QUOTE MVP  ----------------- //
+// ------------------ GET INSURANCE REPUTE  MVP ------------------- //
 // ---------------------------------------------------------------- //
 
 export const getInsuranceRepute = (driverAndCarInput: T_InsuranceReputeInput): T_InsuranceReputeOutput => {
@@ -145,7 +155,7 @@ export const getInsuranceRepute = (driverAndCarInput: T_InsuranceReputeInput): T
         be passed into these functions. For that I called/saved both methods on respective variables,
         and destructured those variables using the in method to narrow the types on those objs.
         
-        This whole thing was triggered by adding a union type I_Error to the outputs. Which is necessary to
+        This whole thing was triggered by adding a union type T_Error to the outputs. Which is necessary to
         return errors.
     */
 
@@ -180,27 +190,21 @@ export const getInsuranceRepute = (driverAndCarInput: T_InsuranceReputeInput): T
     if (isReputeOk(insuranceRepute).error) return isReputeOk(insuranceRepute);
 
     return insuranceRepute;
+};
 
-    /*   
-        Same logic build in a If Loop.. 
-        Left here for reference, but I think it's s**** and it's terrible to read. ☠️   
-        And I'd have to initiate a variable withough assigning it. 
-    
-        if ('monthly_premium' in quote && 'yearly_premium' in quote) {
-        const {monthly_premium, yearly_premium} = quote;
-    
+// ---------------------------------------------------------------- //
+// --------------- GET MULTIPLE INSURANCES REPUTES ---------------- //
+// ---------------------------------------------------------------- //
 
-        let insuranceRepute: {};
+// I am sorry this is a bit verbose.. It is my fisrt attempt of generics.
+export const getMultipleInsuranceReputes = <T extends T_InsuranceReputeInput>(entries: T_MultiReputesInput) => {
+    //
+    // ERROR HANDLING
+    if (isMultiReputesOk(entries).error) return isMultiReputesOk(entries);
 
-        insuranceRepute = {
-            driverName: driver_name,
-            riskRating: risk_rating,
-            carValue: car_value,
-            monthlyPremium: monthly_premium,
-            yearlyPremium: yearly_premium,
-        };
+    // For clarity note ::. Read entries as the inputes from drivers and reputes as the final output from the API
+    const reputesArr = entries.entriesArr.map(entry => getInsuranceRepute(entry as T));
+    const APIresponse = {data: [...reputesArr]};
 
-        return insuranceRepute;
-
-    } */
+    return APIresponse;
 };

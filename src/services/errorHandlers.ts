@@ -1,7 +1,7 @@
 /* 
     Functions to Double check inputs and trigger errors 
 */
-import {I_Error, I_ReputeOutput_Layout} from '../models/interfaces';
+import {T_Error, T_ReputeOutput_Layout, T_MultiReputesInput} from '../models/types';
 
 // ------------------------- ERRORS MAP  -------------------------- //
 const ERR_MESSAGES_MAP = {
@@ -24,6 +24,7 @@ const ERR_MESSAGES_MAP = {
 
     // CAR VALUE ERRORS
     LOW_CAR_VALUE: {error: 'ERROR - Car value is too low.'},
+    TYPE_CAR_VALUE: {error: 'ERROR - Car value is of the wrong type.'},
 
     // INSURANCE REPUTE ERRORS
     REPUTE_VALUE: {error: 'ERROR - There was a problem on the Insurance Repute Value Generation.'},
@@ -32,11 +33,14 @@ const ERR_MESSAGES_MAP = {
     REPUTE_CAR_YEAR: {error: 'ERROR - Car Year input is NOT valid.'},
     REPUTE_CAR_VALUE: {error: 'ERROR - There was a problem while calculating your Car Value.'},
     REPUTE_RISK_RATING: {error: 'ERROR - There was a problem while calculating your Insurance Risk Rating.'},
+
+    // MULTIPLE INSURANCE REPUTE ERROS
+    MULTI_REPUTE_INPUT: {error: 'ERROR - There was a problem with the data to be processed.'},
 };
 
 // ----------------------- CAR YEAR CHECK  ------------------------ //
 
-export const isYearOk = (year: number): I_Error => {
+export const isYearOk = (year: number): T_Error => {
     //
     const currYear = +new Date().getFullYear;
 
@@ -49,7 +53,7 @@ export const isYearOk = (year: number): I_Error => {
 
 // ----------------------- CAR MODEL CHECK  ----------------------- //
 
-export const isModelOk = (model: string): I_Error => {
+export const isModelOk = (model: string): T_Error => {
     //
     if (typeof model != 'string') return ERR_MESSAGES_MAP.TYPE_MODEL;
     if (model.trim() === '') return ERR_MESSAGES_MAP.EMPTY_MODEL;
@@ -59,15 +63,16 @@ export const isModelOk = (model: string): I_Error => {
 
 // ----------------------- CAR VALUE CHECK ------------------------ //
 
-export const isCarValueOk = (carValue: number): I_Error => {
+export const isCarValueOk = (carValue: number): T_Error => {
     //
-    if (carValue < 0) return ERR_MESSAGES_MAP.LOW_CAR_VALUE;
+    if (carValue <= 100) return ERR_MESSAGES_MAP.LOW_CAR_VALUE;
+    if (typeof carValue !== 'number') return ERR_MESSAGES_MAP.TYPE_CAR_VALUE;
     return {ok: true};
 };
 
 // --------------------- DRIVER CLAIM CHECK  ---------------------- //
 
-export const isClaimOk = (claim_history: string): I_Error => {
+export const isClaimOk = (claim_history: string): T_Error => {
     //
     if (typeof claim_history != 'string') return ERR_MESSAGES_MAP.TYPE_CLAIM;
     if (claim_history.trim() === '') return ERR_MESSAGES_MAP.EMPTY_CLAIM;
@@ -77,7 +82,7 @@ export const isClaimOk = (claim_history: string): I_Error => {
 
 // ---------------------- RISK RATING CHECK ----------------------- //
 
-export const isRiskRatingOk = (riskRating: number): I_Error => {
+export const isRiskRatingOk = (riskRating: number): T_Error => {
     //
     if (riskRating < 1) return ERR_MESSAGES_MAP.LOW_RISK_RATING;
     if (riskRating > 5) return ERR_MESSAGES_MAP.HIGH_RISK_RATING;
@@ -87,7 +92,7 @@ export const isRiskRatingOk = (riskRating: number): I_Error => {
 
 // ------------------------- REPUTE CHECK ------------------------- //
 
-export const isReputeOk = (repute: I_ReputeOutput_Layout): I_Error => {
+export const isReputeOk = (repute: T_ReputeOutput_Layout): T_Error => {
     //
     if (repute.driverName === '') return ERR_MESSAGES_MAP.REPUTE_DRIVER;
     if (repute.carModel === '') return ERR_MESSAGES_MAP.REPUTE_CAR_MODEL;
@@ -96,5 +101,12 @@ export const isReputeOk = (repute: I_ReputeOutput_Layout): I_Error => {
     if (repute.riskRating < 1 || repute.riskRating > 5) return ERR_MESSAGES_MAP.REPUTE_RISK_RATING;
     if (repute.monthlyPremium < 1 || repute.yearlyPremium < 0) return ERR_MESSAGES_MAP.REPUTE_VALUE;
 
+    return {ok: true};
+};
+
+// -------------------- MULTIPLE REPUTES CHECK -------------------- //
+
+export const isMultiReputesOk = (entriesObj: T_MultiReputesInput): T_Error => {
+    if (!entriesObj.entriesArr) return ERR_MESSAGES_MAP.MULTI_REPUTE_INPUT;
     return {ok: true};
 };
